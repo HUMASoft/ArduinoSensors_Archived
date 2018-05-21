@@ -1,6 +1,4 @@
 #define PIN_LED 13
-String cadenaCharEntrada = "";  
-bool finCadena = false;
 
 void setup()
 {
@@ -11,14 +9,13 @@ void setup()
 
 void loop()
 {
-   //const int encendido = Serial.parseInt();
    int dato=analogRead(0);
-  //if(finCadena){                               //Se termino de recibir una cadena completa
-   // finCadena = false;                         //Permitimos volver a recibir otra cadena
-     // if (Serial.available()) {  
-      Serial.print(dato);  
-     delay(300);
-  //}
+   int dato1=analogRead(1);
+      Serial.print(dato);
+      Serial.print(dato1);
+      Serial.print('\n');
+      Serial.print('\n');
+      //delay(10);
 }
 //
 //void serialEvent(){
