@@ -12,6 +12,7 @@ QString serialBuffer;
 QString serialBuffer1;
 QString data1;
 QString data2;
+int dat1, dat2, theta;
 
 int main(int argc, char *argv[])
 {
@@ -67,12 +68,18 @@ int main(int argc, char *argv[])
                  qDebug() <<"Dato total:"<<dataread;
                  serialBuffer = QString::fromStdString(dataread.data());
                  serialBuffer1 = QString::fromStdString(dataread.data());
-                 data1=serialBuffer1.remove(3,4);
-                 data2=serialBuffer.remove(0,3);
-                 data2=data2.remove(3,1);
-                 qDebug() <<"Dato 1:"<< data1;
-                 qDebug() <<"Dato 2:"<< data2;
-                 serialBuffer="";
+                 //split
+                 data2=serialBuffer1.remove(3,4);
+                 data1=serialBuffer.remove(0,3);
+                 data1=data1.remove(3,1);
+                 //covert to int
+                 dat1=data1.toInt();
+                 dat2=data2.toInt();
+                 theta=(dat1-543)/(dat2-543);
+                 qDebug() <<"Dato 1:"<< dat1;
+                 qDebug() <<"Dato 2:"<< dat2;
+                 qDebug() <<"Angulo:  "<< theta;
+                 //serialBuffer="";
                  }
     }
    }
