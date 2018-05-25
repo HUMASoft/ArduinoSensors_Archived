@@ -12,7 +12,7 @@ QString serialBuffer;
 QString serialBuffer1;
 QString data1;
 QString data2;
-int dat1, dat2, theta;
+float x, y, relx, rely, theta, psi;
 
 int main(int argc, char *argv[])
 {
@@ -73,13 +73,16 @@ int main(int argc, char *argv[])
                  data1=serialBuffer.remove(0,3);
                  data1=data1.remove(3,1);
                  //covert to int
-                 dat1=data1.toInt();
-                 dat2=data2.toInt();
-                 theta=(dat1-543)/(dat2-543);
-                 qDebug() <<"Dato 1:"<< dat1;
-                 qDebug() <<"Dato 2:"<< dat2;
-                 qDebug() <<"Angulo:  "<< theta;
-                 //serialBuffer="";
+                 y=data1.toFloat();
+                 x=data2.toFloat();
+                 rely=(y-541);
+                 relx=(x-541);
+                 psi=atan(relx/rely);
+                 theta=relx*sin(psi)+rely*sin((M_PI/2)-psi);
+                 qDebug() <<"y  :"<< rely;
+                 qDebug() <<"x  :"<< relx;
+                 qDebug() <<"Angulo psi:  "<< psi*180/M_PI;
+                 qDebug() <<"Angulo theta:  "<<theta*180/M_PI;
                  }
     }
    }
