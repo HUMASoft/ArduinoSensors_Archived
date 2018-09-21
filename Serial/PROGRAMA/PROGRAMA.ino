@@ -15,7 +15,7 @@ void loop()
       Serial.print(dato1);
       Serial.print('\n');
       Serial.print('\n');
-      //delay(10);
+      //381    541     701;
 }
 //
 //void serialEvent(){
