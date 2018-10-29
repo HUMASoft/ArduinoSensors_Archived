@@ -28,7 +28,7 @@ void setup()
 void loop()
 {
     float pitch, roll, fX, fY, fZ;
-    float pitch2, roll2;
+    int roll_t;
 
     imu.readAccelData(&accel[0]);
 
@@ -41,24 +41,30 @@ void loop()
 //    Serial.print(fX);
 //    Serial.print(" Y: ");
 //    Serial.print(fY);
-//    Serial.print(" Z: ");
+//    Serial.print("   ");
 //    Serial.println(fZ);
 
-//    pitch2 = (atan2(fY, sqrt(fX * fX + fZ * fZ)) * 180.0) / M_PI;
-//    roll2 = (atan2(fX, sqrt(fY * fY + fZ * fZ)) * 180.0) / M_PI;
-//    roll2 = (atan2(fY, fZ) * 180.0) / M_PI;
-//    pitch2 = (atan2(-fX, sqrt(fY * fY + fZ * fZ)) * 180.0) / M_PI;
-//    pitch=max(abs(fX),abs(fY));
-    roll=180*atan2(fX,fY)/M_PI;
-    pitch=180*acos(fZ)/M_PI;
+    pitch = (atan2(sqrt(fY * fY + fX * fX),fZ) * 180.0) / M_PI;
 
-    //Serial.print("Roll: ");
-    Serial.print((int8_t)roll);
-    //Serial.print("  Pitch: ");
+    //roll2 = (atan2(fY,fX) * 180.0) / M_PI;
+    roll = (atan(fY/fX) * 180.0) / M_PI;
+//    
+    if(fX<0 && fY>0){//II Cuadrante
+    roll= 180+roll;}
+    
+    if(fX<0 && fY<0){//III Cuadrante
+    roll= 180+roll;}
+    
+    if(fX>0 && fY<0){//IV Cuadrante
+    roll= 360+roll;}
+    
+    roll_t=(int)roll;
+    
+    Serial.print(roll_t);
     Serial.print(",");
     Serial.println((int8_t)pitch);
     Serial.print('\n');
     Serial.print('\n');
 
-    delay(100);
+    //delay(100);
 }
