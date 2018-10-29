@@ -46,17 +46,8 @@ void loop()
 
     pitch = (atan2(sqrt(fY * fY + fX * fX),fZ) * 180.0) / M_PI;
 
-    //roll2 = (atan2(fY,fX) * 180.0) / M_PI;
-    roll = (atan(fY/fX) * 180.0) / M_PI;
-//    
-    if(fX<0 && fY>0){//II Cuadrante
-    roll= 180+roll;}
-    
-    if(fX<0 && fY<0){//III Cuadrante
-    roll= 180+roll;}
-    
-    if(fX>0 && fY<0){//IV Cuadrante
-    roll= 360+roll;}
+    roll = (atan2(fY,fX) * 180.0) / M_PI;
+    //roll = (atan(fY/fX) * 180.0) / M_PI;
     
     roll_t=(int)roll;
     
