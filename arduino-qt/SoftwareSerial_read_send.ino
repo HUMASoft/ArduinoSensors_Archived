@@ -58,28 +58,23 @@
 
 #define AHRS false         // Set to false for basic data read
 #define SerialDebug true  // Set to true to get Serial output for debugging
-
-// Pin definitions
 int intPin = 13;  // These can be changed, 2 and 3 are the Arduinos ext int pins
 int myLed  = 12;  // Set up pin 13 led for toggling
+
 float incl=0, orient=0;
 float th=0,ph=0;
 float inclinacion=0, orientacion=0,pitch=0,roll=0;
-float theta;
-float phi;
+float theta, phi;
 int offset=0;
 int n=0, n_theta=0, n_phi=0;
 int dataRange[100];
-int dataTheta[100];
-int dataPhi[100];
+int dataTheta[500];
+int dataPhi[500];
 float var, mean, mean_theta, mean_phi;
 int sum=0;
-float sumTheta=0, sumPhi=0;
+float sumTheta=0, sumPhi=0, med_phi=0,med_theta=0;
 float offsetTheta=0, offsetPhi=0;
 int i=0, j=0;
-int rotation[2];
-int a=1;
-int lectura=0;
 
 #define I2Cclock 400000
 #define I2Cport Wire
@@ -87,8 +82,7 @@ int lectura=0;
 //#define MPU9250_ADDRESS MPU9250_ADDRESS_AD1
 
 MPU9250 myIMU(MPU9250_ADDRESS, I2Cport, I2Cclock);
-
-
+int readIMU_rotation (float& theta, float& phi);
 
 
 void setup() {
@@ -157,123 +151,62 @@ void setup() {
     myIMU.magBias[1]=633.23;
     myIMU.magBias[2]=451.66;
     
-//    Serial.println("AK8963 mag biases (mG)");
-//    Serial.print(myIMU.magBias[0]);
-//    Serial.print(",");
-//    Serial.print(myIMU.magBias[1]);
-//    Serial.print(",");
-//    Serial.println(myIMU.magBias[2]);
-//
-
   } // if (c == 0x71)
 
-
-
      // Filtrado de theta y phi, eliminar offset de inicio.
+     
      n_theta=sizeof(dataTheta)/sizeof(dataTheta[0]);
      n_phi=sizeof(dataPhi)/sizeof(dataPhi[0]);
      
-     while (dataTheta[99]<=0){     
-     readIMU_rotation(th,ph);
-//     // centrar angulos en cero
-//     // Theta:
-//      
-      if (dataTheta[99]<=0){ //toma 100 datos para obtener la media y offset
-        if (abs(th)<=6){
-             i++;
-             dataTheta[i]=th;
-             sumTheta=sumTheta+dataTheta[i];                                   
-             //Serial.println(th);
-        }
+     for (j=0;j<=500;j++){   // Elimina los primeros 500 datos tomados del sensor
+         
+       readIMU_rotation(th,ph);
+      }  
+        // Toma los siguientes 500 datos para calcular el offset en 
+        // Theta:      
+        for (i=1; i<=500;i++){
+             readIMU_rotation(th,ph);
+             med_theta=((med_theta/i)*(i-1))+(th/i); // media recursiva                                                        
+        }               
          offsetTheta=0;
-       }
-             
-       if (dataTheta[99]!=0){
-        break;
-       }
-     }   
-
-     //    // Phi:
-     while (dataPhi[99]<=0){     
-     readIMU_rotation(th,ph);     
-      if (dataPhi[99]<=0){ //toma 100 datos para obtener la media y offset
-        if (abs(ph)<=7){
-             j++;
-             dataPhi[j]=ph;
-             sumPhi=sumPhi+dataPhi[j]; 
-             //Serial.println(ph);
-                                              
-        }
+        
+        // Toma los siguientes 500 datos para calcular el offset en 
+        // Phi:
+             for (j=1; j<=500;j++){
+             readIMU_rotation(th,ph);
+             med_phi=((med_phi/j)*(j-1))+(ph/j);             
+        }               
          offsetPhi=0;
-       }
-              if (dataPhi[99]!=0){
-        break;
-       }
-     }
-            mean_phi=(sumPhi/n_phi);
-            offsetPhi=(mean_phi);
+         // Offset:
+         offsetPhi=(med_phi);
+         offsetTheta=med_theta;
 
-            mean_theta=(sumTheta/n_theta);
-            offsetTheta=(mean_theta);
-            
-//      Serial.print("offset Theta: ");
-//      Serial.println(offsetTheta);
-//
-//      Serial.print("offset Phi: ");
-//      Serial.println(offsetPhi);
-
+      Serial.print("ready");
+      Serial.print('\n');
 }
-
-
 
 void loop() { // run over and over
  
   readIMU_rotation(th,ph);
   pitch=th-(offsetTheta);
   roll=ph-(offsetPhi);
-//  pitch=th;
-//  roll=ph;
-  //readIMU(inclinacion, orientacion, pitch,roll);
+
+  readIMU(inclinacion, orientacion, pitch,roll);
     if (Serial.available() >0) {
     switch (Serial.read()){
     case 'i':    
-    //pitch*= RAD_TO_DEG;
-//    Serial.println(offsetTheta);
-//    Serial.print(th);
-//    Serial.print(", ");
-    Serial.print(pitch);
+    Serial.print(inclinacion);
     Serial.print('\n');
     
     break;
     case 'o':
-    Serial.print(roll);
+    Serial.print(orientacion);
     Serial.print('\n');
     break;
     default:
     break;
     }
   }
-
-
-//  readIMU(inclinacion, orientacion, pitch,roll);
-    
-//  if (Serial.available() >0) {
-//    switch (Serial.read()){
-//    case 'i':    
-//    Serial.print(inclinacion);
-//    Serial.print('\n');
-//    
-//    break;
-//    case 'o':
-//    Serial.print(orientacion);
-//    Serial.print('\n');
-//    break;
-//    default:
-//    //Serial.println("default");
-//    break;
-//    }
-//  }
-  
 }
 
 
@@ -335,8 +268,6 @@ int readIMU_rotation (float& theta, float& phi){ // obtencion de los angulos de 
   if (!AHRS)
   {
     myIMU.delt_t = millis() - myIMU.count;
-    //if (myIMU.delt_t > 0.5) //Tiempo de muestreo
-   // {
  
 // Define output variables from updated quaternion---these are Tait-Bryan
 // angles, commonly used in aircraft orientation. In this coordinate system,
@@ -388,20 +319,14 @@ int readIMU_rotation (float& theta, float& phi){ // obtencion de los angulos de 
 //      if (myIMU.pitch < -70)
 //      {
 //        myIMU.roll=0;
-//      }
-
-    // myIMU.pitch *= DEG_TO_RAD;
-     //myIMU.roll *= DEG_TO_RAD;
-     
+//      }    
      theta=myIMU.pitch;
      phi=myIMU.roll; 
-
   }
-
     return 0;
-  }
+}
 
-int readIMU (float& incl, float& orient, float& theta, float& phi ){    
+int readIMU (float& incl, float& orient, float& theta, float& phi ){ //Calcula la inclinacion y orientacion del cuello a partir de los angulos pitch y roll del sensor
     theta *= DEG_TO_RAD;
     phi *= DEG_TO_RAD;
     
@@ -409,8 +334,7 @@ int readIMU (float& incl, float& orient, float& theta, float& phi ){
         // ORIENTACION: Proyeccion en el plano XY del vector Z de la matriz de Tait Bryan. (Yaw =0)
         // INCLINACION: Rotacion del vector Z de la matriz de Tait Bryan, con respecto al eje Z del cuello.
         
-        //orientacion con "x"
-        
+        //orientacion con "x"        
         orient= acos((sin(theta)*cos(phi))/(sqrt((pow(sin(theta),2)*pow(cos(phi),2))+pow(sin(phi),2))));
         orient=orient*180/M_PI;
         if (phi<0)
@@ -422,18 +346,12 @@ int readIMU (float& incl, float& orient, float& theta, float& phi ){
          //orientacion con "y"
 //        orient= acos((-sin(phi))/(sqrt((pow(sin(theta),2)*pow(cos(phi),2))+pow(sin(phi),2))));
 //        orient=orient*180/M_PI;
-//        Serial.println(orient);
 
 //    Inclinación (proyeccion sobre Z)
         incl= acos((cos(theta)*cos(phi))/(sqrt((pow(sin(theta),2)*pow(cos(phi),2))+pow(sin(phi),2)+(pow(cos(theta),2)*pow(cos(phi),2)))));
         incl=incl*180/M_PI;
-
-        //incl=theta;
-        //orient=phi;
         
-        //Serial.print("incl: ");              
-
-//    Offset sensor
+//    Offset sensor para inclinacion
 //
 //      n=sizeof(dataRange)/sizeof(dataRange[0]);
 //      if (dataRange[99]<=0){ //toma 100 datos para obtener la varianza, media y offset
@@ -453,15 +371,5 @@ int readIMU (float& incl, float& orient, float& theta, float& phi ){
 //            }
 
 
-            
-          //Envio de datos a QT
-//        Serial.print((int16_t)orient);
-//        Serial.print(",");
-        //Serial.println((int16_t)incl);
-//        Serial.print('\n');  
-
-
   return 0;
-  //return incl,orient;
-  //}
 }
