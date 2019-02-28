@@ -181,7 +181,7 @@ void setup() {
          offsetPhi=(med_phi);
          offsetTheta=med_theta;
 
-      Serial.print("ready");
+      Serial.print("123");
       Serial.print('\n');
 }
 
@@ -191,20 +191,23 @@ void loop() { // run over and over
   pitch=th-(offsetTheta);
   roll=ph-(offsetPhi);
 
-  readIMU(inclinacion, orientacion, pitch,roll);
+  calc_incl_orient(inclinacion, orientacion, pitch,roll);
     if (Serial.available() >0) {
-    switch (Serial.read()){
-    case 'i':    
+      if (Serial.read()=='i'){
+    //switch (Serial.read()){
+    //case 'i':    
+    Serial.print("i");
     Serial.print(inclinacion);
-    Serial.print('\n');
+    Serial.print(',');
     
-    break;
-    case 'o':
+    //break;
+    //case 'o':
+    Serial.print("o");
     Serial.print(orientacion);
     Serial.print('\n');
-    break;
-    default:
-    break;
+    //break;
+    //default:
+    //break;
     }
   }
 }
@@ -326,7 +329,7 @@ int readIMU_rotation (float& theta, float& phi){ // obtencion de los angulos de 
     return 0;
 }
 
-int readIMU (float& incl, float& orient, float& theta, float& phi ){ //Calcula la inclinacion y orientacion del cuello a partir de los angulos pitch y roll del sensor
+int calc_incl_orient (float& incl, float& orient, float& theta, float& phi ){ //Calcula la inclinacion y orientacion del cuello a partir de los angulos pitch y roll del sensor
     theta *= DEG_TO_RAD;
     phi *= DEG_TO_RAD;
     
